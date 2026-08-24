@@ -17,10 +17,12 @@ import { NAV_LINKS, PRICE } from '../config';
         {NAV_LINKS.map((link) => (
           <a href={link.href}>{link.label}</a>
         ))}
+        <a href="/privacy">Privacy</a>
+        <a href="/terms">Terms</a>
       </nav>
     </div>
     <div class="footer__base">
-      <p>© {new Date().getFullYear()} The 65% Rule. All rights reserved.</p>
+      <p>© {new Date().getFullYear()} Vardox Studio. All rights reserved.</p>
       <p>First Edition · {PRICE}</p>
     </div>
   </div>

@@ -1,0 +1,160 @@
+---
+import '../styles/global.css';
+import '@fontsource/playfair-display/400.css';
+import '@fontsource/playfair-display/400-italic.css';
+import '@fontsource/playfair-display/500.css';
+import '@fontsource/playfair-display/600.css';
+import '@fontsource/playfair-display/700.css';
+import '@fontsource/inter/400.css';
+import '@fontsource/inter/500.css';
+import '@fontsource/inter/600.css';
+import '@fontsource/ibm-plex-mono/400.css';
+import '@fontsource/ibm-plex-mono/500.css';
+import { SITE_URL } from '../config';
+
+interface Props {
+  title: string;
+  eyebrow: string;
+  updated: string;
+}
+
+const { title, eyebrow, updated } = Astro.props;
+
+const pageTitle = `${title} · The 65% Rule`;
+const canonical = new URL(Astro.url.pathname, SITE_URL).href;
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{pageTitle}</title>
+    <meta name="description" content={`${title} for The 65% Rule digital First Edition sold on book.vardoxstudio.com.`} />
+    <link rel="canonical" href={canonical} />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta property="og:title" content={pageTitle} />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content={canonical} />
+    <meta name="robots" content="index, follow" />
+  </head>
+  <body>
+    <header class="nav">
+      <nav class="nav__inner container" aria-label="Main">
+        <a class="wordmark" href="/" aria-label="The 65% Rule — home">
+          <span>The</span>
+          <span class="wm-65">65%</span>
+          <span>Rule</span>
+        </a>
+        <div class="nav__links">
+          <a href="/privacy">Privacy</a>
+          <a href="/terms">Terms</a>
+          <a href="/refund-delivery">Refunds &amp; Delivery</a>
+          <a href="/contact">Contact</a>
+        </div>
+        <div class="nav__cta">
+          <a class="btn btn--primary" href="/buy">
+            Get the book · ₹199 <span class="arrow" aria-hidden="true">→</span>
+          </a>
+        </div>
+      </nav>
+    </header>
+
+    <main class="policy">
+      <div class="container policy__inner">
+        <p class="eyebrow">{eyebrow}</p>
+        <h1>{title}</h1>
+        <p class="policy__updated">{updated}</p>
+        <div class="policy__body">
+          <slot />
+        </div>
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="container">
+        <div class="footer__grid">
+          <div class="footer__brand">
+            <a class="wordmark" href="/" aria-label="The 65% Rule — home">
+              <span>The</span>
+              <span class="wm-65">65%</span>
+              <span>Rule</span>
+            </a>
+            <p>The Quiet Mechanics of True Wealth Builders.</p>
+          </div>
+          <nav class="footer__nav" aria-label="Footer">
+            <a href="/privacy">Privacy</a>
+            <a href="/terms">Terms</a>
+            <a href="/refund-delivery">Refunds &amp; Delivery</a>
+            <a href="/contact">Contact</a>
+          </nav>
+        </div>
+        <div class="footer__base">
+          <p>© {new Date().getFullYear()} Vardox Studio. All rights reserved.</p>
+          <p>First Edition · ₹199</p>
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>
+
+<style>
+  .policy {
+    background: var(--paper);
+    padding: clamp(3.5rem, 8vw, 6rem) 0;
+  }
+
+  .policy__inner {
+    max-width: 46em;
+  }
+
+  .policy h1 {
+    font-size: clamp(2rem, 4.4vw, 3rem);
+    margin-bottom: 0.6rem;
+  }
+
+  .policy__updated {
+    font-family: var(--mono);
+    font-size: 0.72rem;
+    letter-spacing: 0.14em;
+    color: var(--brass-deep);
+    margin: 0 0 2rem;
+  }
+
+  .policy__body h2 {
+    font-size: 1.4rem;
+    margin: 2rem 0 0.7rem;
+  }
+
+  .policy__body p,
+  .policy__body li {
+    color: var(--muted-light);
+    line-height: 1.75;
+  }
+
+  .policy__body ul {
+    padding-left: 1.3rem;
+  }
+
+  .policy__body li {
+    margin: 0.55rem 0;
+  }
+
+  .policy__body a {
+    color: var(--brass-deep);
+    text-decoration: underline;
+    text-underline-offset: 2px;
+  }
+
+  .contact-line {
+    font-family: var(--serif);
+    font-size: 1.3rem;
+    color: var(--text-light);
+  }
+
+  @media (max-width: 820px) {
+    .nav__links {
+      display: none;
+    }
+  }
+</style>

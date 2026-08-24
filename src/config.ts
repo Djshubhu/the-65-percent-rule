@@ -19,6 +19,8 @@ export const NAV_LINKS = [
   { label: 'Inside the Book', href: '#inside' },
   { label: 'First Edition', href: '#edition' },
   { label: 'FAQ', href: '#faq' },
+  { label: 'Refunds & Delivery', href: '/refund-delivery' },
+  { label: 'Contact', href: '/contact' },
 ] as const;
 
 export const MECHANISMS = [
