@@ -15,7 +15,6 @@ html_handling = "auto-trailing-slash"
 # Non-secret configuration. PAYU_KEY and PAYU_SALT are Cloudflare secrets.
 [vars]
 PAYU_ENV = "test"
-PAYU_DEBUG = "1"
 SITE_URL = "https://the-65-percent-rule.machine-shubhu.workers.dev"
 
 [observability]
