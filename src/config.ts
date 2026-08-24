@@ -1,7 +1,7 @@
 // ── Site configuration ─────────────────────────────────────────────
 // One place to change the things that must never drift apart.
 
-export const SITE_URL = 'https://djshubhu.github.io/the-65-percent-rule/';
+export const SITE_URL = 'https://shubhu.me/the-65-percent-rule/';
 
 /** Every purchase CTA points here. Replace with the real checkout link
  *  (Razorpay / Shopify / Gumroad / Instamojo) when payment goes live. */
