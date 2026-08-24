@@ -1,0 +1,21 @@
+---
+import Base from '../layouts/Base.astro';
+import Hero from '../components/Hero.astro';
+import Question from '../components/Question.astro';
+import Rule from '../components/Rule.astro';
+import Inside from '../components/Inside.astro';
+import Offer from '../components/Offer.astro';
+import Faq from '../components/Faq.astro';
+import MobileCta from '../components/MobileCta.astro';
+import { CHECKOUT_URL, PRICE } from '../config';
+---
+
+<Base>
+  <Hero />
+  <Question />
+  <Rule />
+  <Inside />
+  <Offer />
+  <Faq />
+  <MobileCta checkoutUrl={CHECKOUT_URL} price={PRICE} />
+</Base>

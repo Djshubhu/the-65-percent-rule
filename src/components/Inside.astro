@@ -1,0 +1,32 @@
+---
+import { MECHANISMS, CHECKOUT_URL } from '../config';
+---
+
+<section class="inside" id="inside" aria-labelledby="inside-title">
+  <div class="container">
+    <div class="inside__head">
+      <p class="eyebrow">Inside the Book</p>
+      <h2 id="inside-title">What the book actually <em>changes</em></h2>
+      <p class="lede lede--light">
+        Not seven chapters of theory — a small set of practical mechanisms that keep money
+        working long after the motivation wears off.
+      </p>
+    </div>
+
+    <div class="mechanisms">
+      {MECHANISMS.map((item, i) => (
+        <article class="mechanism">
+          <p class="mechanism__index">0{i + 1}</p>
+          <h3>{item.title}</h3>
+          <p>{item.body}</p>
+        </article>
+      ))}
+    </div>
+
+    <div style="margin-top: 3rem">
+      <a class="btn btn--primary" href={CHECKOUT_URL}>
+        Get inside the book <span class="arrow" aria-hidden="true">→</span>
+      </a>
+    </div>
+  </div>
+</section>

@@ -1,0 +1,18 @@
+{
+  "name": "the-65-percent-rule",
+  "version": "1.0.0",
+  "description": "Official website for The 65% Rule — The Quiet Mechanics of True Wealth Builders.",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview"
+  },
+  "dependencies": {
+    "@fontsource/ibm-plex-mono": "^5.1.1",
+    "@fontsource/inter": "^5.1.1",
+    "@fontsource/playfair-display": "^5.1.1",
+    "astro": "^5.0.0"
+  }
+}

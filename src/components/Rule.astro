@@ -1,0 +1,32 @@
+---
+import { CHECKOUT_URL } from '../config';
+---
+
+<section class="rule" id="rule" aria-labelledby="rule-title">
+  <div class="container rule__grid">
+    <div class="rule__dial" aria-hidden="true">
+      <div class="rule__dial-ring"></div>
+      <div class="rule__numeral">65%</div>
+    </div>
+    <div class="rule__content">
+      <p class="eyebrow">The Rule</p>
+      <h2 id="rule-title">The gap is not discipline.<br />It is <em>architecture.</em></h2>
+      <p>
+        Two people earn the same salary. One watches it dissolve into normal life —
+        bills, payments, small rewards, emergencies, "I'll start next month".
+      </p>
+      <p>
+        The other is not richer, smarter or more disciplined. Their money simply does a
+        different job <em>before</em> it disappears. The 65% Rule is that architecture —
+        a directional framework you shape around your real numbers, your costs and your
+        starting point.
+      </p>
+      <p class="rule__kicker">The amount changes the options. It does not remove the need for a system.</p>
+      <div style="margin-top: 2rem">
+        <a class="btn btn--primary" href={CHECKOUT_URL}>
+          The complete guide · ₹199 <span class="arrow" aria-hidden="true">→</span>
+        </a>
+      </div>
+    </div>
+  </div>
+</section>

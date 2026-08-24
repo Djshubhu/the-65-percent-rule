@@ -1,0 +1,23 @@
+---
+import { CHECKOUT_URL, NAV_LINKS } from '../config';
+---
+
+<header class="nav">
+  <nav class="nav__inner container" aria-label="Main">
+    <a class="wordmark" href="#top" aria-label="The 65% Rule — home">
+      <span>The</span>
+      <span class="wm-65">65%</span>
+      <span>Rule</span>
+    </a>
+    <div class="nav__links">
+      {NAV_LINKS.map((link) => (
+        <a href={link.href}>{link.label}</a>
+      ))}
+    </div>
+    <div class="nav__cta">
+      <a class="btn btn--primary" href={CHECKOUT_URL}>
+        Get the book · ₹199 <span class="arrow" aria-hidden="true">→</span>
+      </a>
+    </div>
+  </nav>
+</header>

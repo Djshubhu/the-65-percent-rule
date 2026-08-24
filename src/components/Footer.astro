@@ -1,0 +1,27 @@
+---
+import { NAV_LINKS, PRICE } from '../config';
+---
+
+<footer class="footer">
+  <div class="container">
+    <div class="footer__grid">
+      <div class="footer__brand">
+        <a class="wordmark" href="#top" aria-label="The 65% Rule — home">
+          <span>The</span>
+          <span class="wm-65">65%</span>
+          <span>Rule</span>
+        </a>
+        <p>The Quiet Mechanics of True Wealth Builders.</p>
+      </div>
+      <nav class="footer__nav" aria-label="Footer">
+        {NAV_LINKS.map((link) => (
+          <a href={link.href}>{link.label}</a>
+        ))}
+      </nav>
+    </div>
+    <div class="footer__base">
+      <p>© {new Date().getFullYear()} The 65% Rule. All rights reserved.</p>
+      <p>First Edition · {PRICE}</p>
+    </div>
+  </div>
+</footer>

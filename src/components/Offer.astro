@@ -1,0 +1,53 @@
+---
+import { CHECKOUT_URL, PRICE } from '../config';
+---
+
+<section class="offer" id="edition" aria-labelledby="offer-title">
+  <div class="container offer__grid">
+    <div class="offer__copy">
+      <p class="eyebrow">First Edition</p>
+      <h2 id="offer-title">A first edition, <em>built like a first edition</em></h2>
+      <p class="offer__lead">
+        A genuine launch edition — numbered, finished, and honest by design.
+        No countdowns. No fake discounts. No invented urgency. Only the book
+        and what you need to use it.
+      </p>
+      <ul class="inclusions">
+        <li>
+          <span class="tick" aria-hidden="true">✓</span>
+          <span>
+            The complete digital book
+            <small>Readable on any device, delivered as finished files.</small>
+          </span>
+        </li>
+        <li>
+          <span class="tick" aria-hidden="true">✓</span>
+          <span>
+            Printable 65% Blueprint
+            <small>One page that keeps the system in front of you, every day.</small>
+          </span>
+        </li>
+        <li>
+          <span class="tick" aria-hidden="true">✓</span>
+          <span>
+            Early-reader updates
+            <small>You receive the benefit of being first — quietly, as the edition matures.</small>
+          </span>
+        </li>
+      </ul>
+    </div>
+
+    <aside class="offer__card" aria-label="First Edition offer">
+      <p class="edition-label">First Edition · Digital</p>
+      <p class="price">{PRICE}<span>/ lifetime access</span></p>
+      <p class="card-note">Launch price. It may change as the edition matures.</p>
+      <a class="btn btn--primary" href={CHECKOUT_URL}>
+        Buy the First Edition <span class="arrow" aria-hidden="true">→</span>
+      </a>
+      <p class="terms">
+        DIGITAL DELIVERY · FINAL FORMATS, DELIVERY &amp; REFUND TERMS ARE PUBLISHED AT
+        CHECKOUT BEFORE YOU PAY · NO FINE PRINT
+      </p>
+    </aside>
+  </div>
+</section>

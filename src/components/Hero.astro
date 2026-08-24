@@ -1,0 +1,42 @@
+---
+import { CHECKOUT_URL, PRICE } from '../config';
+---
+
+<section class="hero" id="top" aria-labelledby="hero-title">
+  <div class="container hero__grid">
+    <div class="hero__copy">
+      <p class="eyebrow">The 65% Rule · First Edition</p>
+      <h1 id="hero-title">Every rupee opens a door.<br /><em>Few people notice&nbsp;which&nbsp;one.</em></h1>
+      <p class="hero__sub">
+        This is not a book about earning more. It is about the quiet decision made
+        <em>after</em> money reaches you — in the short distance between a salary landing
+        and it disappearing into the noise of normal life.
+      </p>
+      <div class="hero__actions">
+        <a class="btn btn--primary" href={CHECKOUT_URL}>
+          Get the book · {PRICE} <span class="arrow" aria-hidden="true">→</span>
+        </a>
+        <a class="btn btn--ghost-light" href="#rule">The idea in 60 seconds</a>
+      </div>
+      <p class="hero__note">FIRST EDITION · NUMBERED · 65% BLUEPRINT INSIDE</p>
+    </div>
+
+    <div class="book" aria-label="The 65% Rule book cover">
+      <div class="book__mat">
+        <picture>
+          <source srcset="/cover-800.jpg 1x, /cover-1200.jpg 2x" media="(min-width: 700px)" />
+          <source srcset="/cover-480.jpg" media="(max-width: 699px)" />
+          <img
+            src="/cover.jpg"
+            alt="The 65% Rule — a doorway slightly ajar, golden light spilling through, on a matte black cover with gold lettering"
+            width="1200"
+            height="1200"
+            loading="eager"
+            decoding="async"
+          />
+        </picture>
+      </div>
+    </div>
+  </div>
+  <p class="hero__scroll container"><span>Scroll</span></p>
+</section>

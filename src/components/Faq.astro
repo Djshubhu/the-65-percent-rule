@@ -1,0 +1,25 @@
+---
+import { FAQ_ITEMS } from '../config';
+---
+
+<section class="faq" id="faq" aria-labelledby="faq-title">
+  <div class="container">
+    <div class="faq__head">
+      <p class="eyebrow">Before you ask</p>
+      <h2 id="faq-title">Honest answers to <em>real objections</em></h2>
+      <p class="lede lede--light">
+        The questions that usually stop a purchase — answered straight, because a
+        finance book that hides terms would miss the point of the book.
+      </p>
+    </div>
+
+    <div class="faq__list">
+      {FAQ_ITEMS.map((item) => (
+        <details>
+          <summary>{item.q}</summary>
+          <p>{item.a}</p>
+        </details>
+      ))}
+    </div>
+  </div>
+</section>
