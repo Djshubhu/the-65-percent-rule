@@ -19,6 +19,7 @@ export interface Env {
   PAYU_SALT?: string;
   PAYU_ENV?: 'test' | 'production';
   SITE_URL?: string;
+  PAYU_DEBUG?: string;
 }
 
 type Values = Record<string, string>;
@@ -182,6 +183,16 @@ async function handlePayuReturn(request: Request, env: Env): Promise<Response> {
   const response = toValues(await request.formData());
   const expectedKey = env.PAYU_KEY!.trim();
   const responseHash = response.hash || '';
+  if (env.PAYU_DEBUG === '1') {
+    const computedHash = await responseHashString(response, env.PAYU_SALT!.trim());
+    const details: Values = {};
+    const showKeys = ['mihpayid','status','unmappedstatus','txnid','amount','net_amount_debit','productinfo','firstname','email','key','hash','udf1','udf2','udf5','additional_charges','error','error_Message','bankcode','mode','PG_TYPE'];
+    for (const k of showKeys) if (response[k] !== undefined) details[k] = response[k];
+    return new Response(htmlDebug(details, computedHash, responseHash), {
+      status: 200,
+      headers: { 'content-type': 'text/html; charset=utf-8', 'cache-control': 'no-store' },
+    });
+  }
   const responseLooksValid = response.key === expectedKey
     && response.txnid
     && response.amount === PRICE
@@ -276,7 +287,7 @@ async function requestHash(fields: Values, salt: string): Promise<string> {
   return sha512(values.join('|'));
 }
 
-async function validResponseHash(params: Values, salt: string, receivedHash: string): Promise<boolean> {
+async function responseHashString(params: Values, salt: string): Promise<string> {
   // Reverse hash: SALT|status||||||udf5|udf4|udf3|udf2|udf1|email|firstname|productinfo|amount|txnid|key
   // additional_charges, when supplied, becomes a prefix before SALT.
   const values = [
@@ -289,7 +300,11 @@ async function validResponseHash(params: Values, salt: string, receivedHash: str
   ];
   const additionalCharges = params.additional_charges || params.additionalCharges;
   if (additionalCharges) values.unshift(additionalCharges);
-  return timingSafeEqual(await sha512(values.join('|')), receivedHash.toLowerCase());
+  return sha512(values.join('|'));
+}
+
+async function validResponseHash(params: Values, salt: string, receivedHash: string): Promise<boolean> {
+  return timingSafeEqual(await responseHashString(params, salt), receivedHash.toLowerCase());
 }
 
 function environment(env: Env): 'test' | 'production' {
@@ -373,6 +388,19 @@ function paymentPage(options: {
     </main>
   </body>
 </html>`, options.status ?? 200);
+}
+
+function htmlDebug(details: Values, computedHash: string, receivedHash: string): string {
+  const rows = Object.entries(details)
+    .map(([k, v]) => `<tr><td>${escapeHtml(k)}</td><td>${escapeHtml(v)}</td></tr>`)
+    .join('');
+  return `<!doctype html><html lang="en"><head><meta charset="utf-8"><title>PAYU DEBUG</title>
+<style>body{font:14px ui-monospace,monospace;background:#0f0c09;color:#e8e2d6;padding:2rem}table{border-collapse:collapse;width:100%}td,th{border:1px solid #b8925a44;padding:.4rem .6rem;text-align:left;word-break:break-all}th{color:#d9b878;letter-spacing:.08em}td:first-child{color:#d9b878;white-space:nowrap}</style></head>
+<body><h1>PAYU DEBUG</h1>
+<p>computedHash: <code>${escapeHtml(computedHash)}</code></p>
+<p>receivedHash: <code>${escapeHtml(receivedHash)}</code></p>
+<p>match: <strong>${computedHash === receivedHash.toLowerCase() ? 'YES' : 'NO'}</strong></p>
+<table><tr><th>field</th><th>value</th></tr>${rows}</table></body></html>`;
 }
 
 function html(content: string, status = 200): Response {
