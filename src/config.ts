@@ -14,13 +14,12 @@ export const SITE_TITLE = 'The 65% Rule — The Quiet Mechanics of True Wealth B
 export const SITE_DESCRIPTION =
   'A first-edition book about the quiet decision made after money reaches you — before it disappears into the noise of normal life.';
 
+// Keep the main navigation focused on the book. Legal/support pages live in the footer.
 export const NAV_LINKS = [
   { label: 'The Rule', href: '#rule' },
   { label: 'Inside the Book', href: '#inside' },
   { label: 'First Edition', href: '#edition' },
   { label: 'FAQ', href: '#faq' },
-  { label: 'Refunds & Delivery', href: '/refund-delivery' },
-  { label: 'Contact', href: '/contact' },
 ] as const;
 
 export const MECHANISMS = [
