@@ -15,7 +15,7 @@ html_handling = "auto-trailing-slash"
 # Non-secret configuration. PAYU_KEY and PAYU_SALT are Cloudflare secrets.
 [vars]
 PAYU_ENV = "test"
-SITE_URL = "https://the-65-percent-rule.machine-shubhu.workers.dev"
+SITE_URL = "https://book.vardoxstudio.com"
 
 # D1 order store — records every verified purchase (used by /payu/return).
 [[d1_databases]]

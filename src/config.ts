@@ -1,8 +1,8 @@
 // ── Site configuration ─────────────────────────────────────────────
 // One place to change the things that must never drift apart.
 
-/** Live site — Cloudflare Worker deployment. */
-export const SITE_URL = 'https://the-65-percent-rule.machine-shubhu.workers.dev/';
+/** Live site — book.vardoxstudio.com custom domain. */
+export const SITE_URL = 'https://book.vardoxstudio.com/';
 
 /** Every purchase CTA points here. The Cloudflare Worker creates a signed
  *  PayU Hosted Checkout order after collecting buyer details. */
