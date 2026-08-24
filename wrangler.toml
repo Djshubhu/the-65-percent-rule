@@ -17,5 +17,11 @@ html_handling = "auto-trailing-slash"
 PAYU_ENV = "test"
 SITE_URL = "https://the-65-percent-rule.machine-shubhu.workers.dev"
 
+# D1 order store — records every verified purchase (used by /payu/return).
+[[d1_databases]]
+binding = "DB"
+database_name = "the-65-percent-rule-orders"
+database_id = "9c13e940-1478-4f92-83e3-a2f5ace3eb62"
+
 [observability]
 enabled = true

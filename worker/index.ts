@@ -15,6 +15,7 @@
 
 export interface Env {
   ASSETS: Fetcher;
+  DB: D1Database;
   PAYU_KEY?: string;
   PAYU_SALT?: string;
   PAYU_ENV?: 'test' | 'production';
@@ -203,10 +204,11 @@ async function handlePayuReturn(request: Request, env: Env): Promise<Response> {
   if (status === 'success') {
     const verified = await verifyPayment(env, response.txnid);
     if (verified) {
+      await recordOrder(env, response);
       return paymentPage({
         title: 'Payment verified.',
         eyebrow: 'THE 65% RULE · FIRST EDITION',
-        message: 'Thank you. Your payment has been verified securely with PayU. Keep this order reference for your records.',
+        message: `Thank you. Your payment has been verified securely with PayU. Your digital copy of The 65% Rule will be delivered to ${response.email || 'your email'}. Keep this order reference for your records.`,
         reference: response.txnid,
         actionLabel: 'Return to the book',
         actionHref: origin(env, new URL(request.url)),
