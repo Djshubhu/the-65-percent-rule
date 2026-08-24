@@ -255,10 +255,13 @@ async function verifyPayment(env: Env, txnid: string): Promise<boolean> {
       body,
     });
     if (!result.ok) return false;
-    const payload = await result.json() as { transaction_details?: Record<string, Values> };
+    const payload = await result.json() as { status?: number; transaction_details?: Record<string, Values> };
+    if (payload.status !== 1) return false;
     const transaction = payload.transaction_details?.[txnid];
-    return transaction?.status?.toLowerCase() === 'success'
-      && transaction.amount === PRICE
+    if (!transaction) return false;
+    const amount = transaction.amt || transaction.transaction_amount || transaction.amount || '';
+    return transaction.status?.toLowerCase() === 'success'
+      && amount === PRICE
       && transaction.productinfo === PRODUCT_INFO;
   } catch {
     return false;
