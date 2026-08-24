@@ -1,11 +1,12 @@
 // ── Site configuration ─────────────────────────────────────────────
 // One place to change the things that must never drift apart.
 
-export const SITE_URL = 'https://shubhu.me/the-65-percent-rule/';
+/** Live site — Cloudflare Worker deployment. */
+export const SITE_URL = 'https://the-65-percent-rule.machine-shubhu.workers.dev/';
 
-/** Every purchase CTA points here. Replace with the real checkout link
- *  (Razorpay / Shopify / Gumroad / Instamojo) when payment goes live. */
-export const CHECKOUT_URL = '/buy-the-65-percent-rule';
+/** Every purchase CTA points here. The Cloudflare Worker creates a signed
+ *  PayU Hosted Checkout order after collecting buyer details. */
+export const CHECKOUT_URL = '/buy';
 
 export const PRICE = '₹199';
 

@@ -1,0 +1,21 @@
+name = "the-65-percent-rule"
+main = "worker/index.ts"
+compatibility_date = "2026-08-24"
+compatibility_flags = ["nodejs_compat"]
+workers_dev = true
+
+# Only /buy and /payu/* run the Worker first. The marketing site remains
+# globally cached static assets everywhere else.
+[assets]
+directory = "./dist"
+binding = "ASSETS"
+run_worker_first = ["/buy*", "/payu/*"]
+html_handling = "auto-trailing-slash"
+
+# Non-secret configuration. PAYU_KEY and PAYU_SALT are Cloudflare secrets.
+[vars]
+PAYU_ENV = "test"
+SITE_URL = "https://the-65-percent-rule.machine-shubhu.workers.dev"
+
+[observability]
+enabled = true

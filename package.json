@@ -7,12 +7,20 @@
   "scripts": {
     "dev": "astro dev",
     "build": "astro build",
-    "preview": "astro preview"
+    "preview": "astro preview",
+    "cf:dev": "npm run build && wrangler dev",
+    "cf:deploy": "npm run build && wrangler deploy",
+    "worker:check": "npm run build && wrangler deploy --dry-run",
+    "check": "astro check"
   },
   "dependencies": {
     "@fontsource/ibm-plex-mono": "^5.1.1",
     "@fontsource/inter": "^5.1.1",
     "@fontsource/playfair-display": "^5.1.1",
     "astro": "^5.0.0"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^5.20260823.1",
+    "wrangler": "^4.125.0"
   }
 }

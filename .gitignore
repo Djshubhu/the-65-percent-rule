@@ -12,9 +12,16 @@ yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
 
-# environment variables
+# environment variables and payment secrets
 .env
-.env.production
+.env.*
+!.env.example
+.dev.vars
+.dev.vars.*
+
+# Cloudflare local state and generated bindings
+.wrangler/
+worker-configuration.d.ts
 
 # macOS
 .DS_Store

@@ -39,10 +39,28 @@ Everything that must never drift apart lives in **one file**:
 | `FAQ_ITEMS`    | FAQ content (also feeds the FAQ schema)                       |
 | `SITE_URL`     | Canonical URL                                                 |
 
-**Before going live:** replace `CHECKOUT_URL` with the real checkout link
-(Razorpay / Shopify / Gumroad / Instamojo) and publish the final delivery
-and refund terms at checkout — the page already states that these are
-published before payment.
+## PayU Hosted Checkout
+
+The site is ready for **PayU Hosted Checkout** through a Cloudflare Worker. The
+Worker generates PayU's SHA-512 payment hash server-side; the merchant salt is
+never shipped to the browser or committed to Git.
+
+1. Use **PayU Hosted** (the option shown in your PayU dashboard), not Merchant Hosted.
+2. Keep `PAYU_ENV = "test"` first and set two encrypted Worker secrets:
+   `PAYU_KEY` and `PAYU_SALT`.
+3. Test the full flow using PayU test credentials. The worker sends customers to
+   `test.payu.in/_payment`, validates PayU's reverse hash on return, then calls
+   PayU's `verify_payment` API before showing a verified result.
+4. After successful tests, replace the secrets with production Key/Salt and set
+   `PAYU_ENV = "production"`; this switches PayU to `secure.payu.in/_payment`.
+
+`wrangler.toml` serves `dist/` and runs the Worker only on `/buy` and
+`/payu/*`. The public pricing and product fields are fixed server-side at
+₹199 / `The 65% Rule — First Edition`, so a browser cannot alter an order total.
+
+**Before production:** finalise digital delivery and refund terms. A verified
+payment is not automatic licence delivery yet; connect your delivery email or
+download system only after that is specified.
 
 ## Design system
 
@@ -55,7 +73,17 @@ Built directly from the book cover:
 
 ## Deployment
 
-`deploy.yml` builds the static site and publishes it to **GitHub Pages**
-automatically on every push to `main` (the site is configured with a relative
-base, so it works from any sub-path). You can also deploy `dist/` to Netlify,
-Vercel, Cloudflare Pages, or any static host.
+The live implementation uses **Cloudflare Workers**, which serves the static
+Astro build and runs the secure PayU routes together:
+
+```bash
+npm run cf:deploy
+```
+
+Before the first deployment, sign into Wrangler (`wrangler login`) and add the
+`PAYU_KEY` + `PAYU_SALT` secrets in the Cloudflare dashboard or with
+`wrangler secret bulk`. Never put either value in `wrangler.toml`, `.env` or
+Git.
+
+`deploy.yml` remains available if you also want a GitHub Pages mirror, but the
+canonical production URL is the Cloudflare Worker URL.
