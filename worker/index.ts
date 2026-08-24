@@ -240,6 +240,28 @@ async function handlePayuReturn(request: Request, env: Env): Promise<Response> {
   });
 }
 
+async function recordOrder(env: Env, params: Values): Promise<void> {
+  if (!env.DB) return;
+  try {
+    await env.DB.prepare(
+      `INSERT OR IGNORE INTO orders (txnid, email, firstname, phone, amount, status, paid_at, mihpayid)
+       VALUES (?, ?, ?, ?, ?, 'paid', ?, ?)`,
+    )
+      .bind(
+        params.txnid || '',
+        params.email || '',
+        params.firstname || '',
+        params.phone || '',
+        params.amount || PRICE,
+        new Date().toISOString(),
+        params.mihpayid || '',
+      )
+      .run();
+  } catch (error) {
+    console.error('recordOrder failed', error);
+  }
+}
+
 async function verifyPayment(env: Env, txnid: string): Promise<boolean> {
   const key = env.PAYU_KEY!.trim();
   const salt = env.PAYU_SALT!.trim();
