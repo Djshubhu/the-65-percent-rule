@@ -205,10 +205,17 @@ async function handlePayuReturn(request: Request, env: Env): Promise<Response> {
     const verified = await verifyPayment(env, response.txnid);
     if (verified) {
       await recordOrder(env, response);
+      const mailed = await deliverBook(env, {
+        email: response.email || '',
+        firstname: response.firstname || '',
+        txnid: response.txnid || '',
+      });
       return paymentPage({
         title: 'Payment verified.',
         eyebrow: 'THE 65% RULE · FIRST EDITION',
-        message: `Thank you. Your payment has been verified securely with PayU. Your digital copy of The 65% Rule will be delivered to ${response.email || 'your email'}. Keep this order reference for your records.`,
+        message: mailed
+          ? `Thank you. Your payment has been verified and your digital copy of The 65% Rule has been emailed to ${response.email || 'your email'}. Keep this order reference for your records.`
+          : `Thank you. Your payment has been verified securely with PayU. Your digital copy of The 65% Rule will be delivered to ${response.email || 'your email'}. Keep this order reference for your records.`,
         reference: response.txnid,
         actionLabel: 'Return to the book',
         actionHref: origin(env, new URL(request.url)),
@@ -259,6 +266,30 @@ async function recordOrder(env: Env, params: Values): Promise<void> {
       .run();
   } catch (error) {
     console.error('recordOrder failed', error);
+  }
+}
+
+/** Fire the Apps Script webhook that emails the book from the owner's Gmail. */
+async function deliverBook(env: Env, order: { email: string; firstname: string; txnid: string }): Promise<boolean> {
+  if (!env.MAIL_WEBHOOK_URL || !env.MAIL_WEBHOOK_SECRET) return false;
+  try {
+    const result = await fetch(env.MAIL_WEBHOOK_URL, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({
+        secret: env.MAIL_WEBHOOK_SECRET,
+        email: order.email,
+        firstname: order.firstname,
+        txnid: order.txnid,
+        amount: PRICE,
+      }),
+      signal: AbortSignal.timeout(25000),
+    });
+    const data = await result.json() as { ok?: boolean };
+    return result.ok && data.ok === true;
+  } catch (error) {
+    console.error('deliverBook failed', error);
+    return false;
   }
 }
 
