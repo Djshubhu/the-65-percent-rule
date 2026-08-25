@@ -286,7 +286,17 @@ async function deliverBook(env: Env, order: { email: string; firstname: string; 
       signal: AbortSignal.timeout(25000),
     });
     const data = await result.json() as { ok?: boolean };
-    return result.ok && data.ok === true;
+    const mailed = result.ok && data.ok === true;
+    if (mailed && env.DB && order.txnid) {
+      try {
+        await env.DB.prepare('UPDATE orders SET delivered = 1, delivered_at = ? WHERE txnid = ?')
+          .bind(new Date().toISOString(), order.txnid)
+          .run();
+      } catch (e) {
+        console.error('markDelivered failed', e);
+      }
+    }
+    return mailed;
   } catch (error) {
     console.error('deliverBook failed', error);
     return false;
