@@ -16,6 +16,7 @@ html_handling = "auto-trailing-slash"
 [vars]
 PAYU_ENV = "test"
 SITE_URL = "https://book.vardoxstudio.com"
+MAIL_WEBHOOK_URL = "https://script.google.com/macros/s/AKfycbzbVSSX6EAIKQ2bkhraVKDc-_IJh4Q3ceqX4ySDsGghx6zO0mkkBeOqacT18ERcFDNi/exec"
 
 # D1 order store — records every verified purchase (used by /payu/return).
 [[d1_databases]]
