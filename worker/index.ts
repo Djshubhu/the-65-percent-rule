@@ -23,6 +23,8 @@ export interface Env {
   MAIL_WEBHOOK_URL?: string;
   MAIL_WEBHOOK_SECRET?: string;
   META_CAPI_TOKEN?: string;
+  // Optional, temporary code from Meta Events Manager → Test events.
+  META_TEST_EVENT_CODE?: string;
 }
 
 type Values = Record<string, string>;
@@ -50,7 +52,7 @@ const META_API_VERSION = 'v21.0';
 const META_VALUE = 199;
 
 export default {
-  async fetch(request: Request, env: Env): Promise<Response> {
+  async fetch(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
     const url = new URL(request.url);
 
     if (url.pathname === '/buy' || url.pathname === '/buy/') {
@@ -60,7 +62,7 @@ export default {
     }
 
     if (url.pathname === '/payu/return') {
-      if (request.method === 'POST') return handlePayuReturn(request, env);
+      if (request.method === 'POST') return handlePayuReturn(request, env, ctx);
       return paymentPage({
         title: 'Return to checkout',
         eyebrow: 'PAYMENT',
@@ -94,6 +96,7 @@ async function checkoutPage(env: Env): Promise<Response> {
     <title>Checkout · The 65% Rule</title>
     <style>${pageStyles()}</style>
     ${gaTag()}
+    ${metaPixelSnippet()}
   </head>
   <body>
     <main class="shell">
@@ -199,6 +202,8 @@ async function startCheckout(request: Request, env: Env): Promise<Response> {
     <meta name="robots" content="noindex" />
     <title>Redirecting to secure checkout · The 65% Rule</title>
     <style>${pageStyles()}</style>
+    ${gaTag()}
+    ${metaPixelSnippet()}
   </head>
   <body>
     <main class="shell redirect">
@@ -214,7 +219,7 @@ async function startCheckout(request: Request, env: Env): Promise<Response> {
 </html>`);
 }
 
-async function handlePayuReturn(request: Request, env: Env): Promise<Response> {
+async function handlePayuReturn(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
   const configurationError = missingConfig(env);
   if (configurationError) return configurationError;
 
@@ -250,13 +255,14 @@ async function handlePayuReturn(request: Request, env: Env): Promise<Response> {
       });
       // Conversions API: send the Purchase from the server so Meta gets it even
       // when the browser signal is lost (ad blockers, iOS, PayU redirect wall).
-      void sendMetaPurchase(env, {
+      ctx.waitUntil(sendMetaPurchase(env, {
         txnid: response.txnid || '',
         email: response.email || '',
         phone: response.phone || '',
         userAgent: request.headers.get('user-agent') || '',
+        clientIp: request.headers.get('cf-connecting-ip') || '',
         cookieHeader: request.headers.get('cookie') || '',
-      });
+      }));
       return paymentPage({
         title: 'Payment verified.',
         eyebrow: 'THE 65% RULE · FIRST EDITION',
@@ -487,6 +493,7 @@ function paymentPage(options: {
         content_ids: ['${PRODUCT_SLUG}'],
         content_type: 'product',
         num_items: 1,
+      }, {
         eventID: ${JSON.stringify(options.reference)},
       });`
     : '';
@@ -545,25 +552,40 @@ function metaPixelSnippet(extraScript = ''): string {
  */
 async function sendMetaPurchase(
   env: Env,
-  order: { txnid: string; email: string; phone: string; userAgent: string; cookieHeader: string },
+  order: { txnid: string; email: string; phone: string; userAgent: string; clientIp: string; cookieHeader: string },
 ): Promise<void> {
   const token = env.META_CAPI_TOKEN;
   if (!token || !order.txnid) return;
   try {
-    const em = await sha256Hex(order.email.trim().toLowerCase());
-    const ph = await sha256Hex(order.phone.replace(/\D/g, ''));
-    const user_data: Record<string, string[]> = { em: [em], ph: [ph] };
+    const user_data: {
+      em?: string[];
+      ph?: string[];
+      client_user_agent?: string;
+      client_ip_address?: string;
+      fbp?: string;
+      fbc?: string;
+    } = {};
+    const email = order.email.trim().toLowerCase();
+    const phone = order.phone.replace(/\D/g, '');
+    if (email) user_data.em = [await sha256Hex(email)];
+    if (phone) user_data.ph = [await sha256Hex(phone)];
     const ua = order.userAgent.slice(0, 512);
-    if (ua) user_data.client_user_agent = [ua];
+    if (ua) user_data.client_user_agent = ua;
+    if (order.clientIp) user_data.client_ip_address = order.clientIp;
     const fbp = cookieValue(order.cookieHeader, '_fbp');
     const fbc = cookieValue(order.cookieHeader, '_fbc');
-    if (fbp) user_data.fbp = [fbp];
-    if (fbc) user_data.fbc = [fbc];
-    const payload = {
+    if (fbp) user_data.fbp = fbp;
+    if (fbc) user_data.fbc = fbc;
+
+    const payload: {
+      data: Array<Record<string, unknown>>;
+      test_event_code?: string;
+    } = {
       data: [
         {
           event_name: 'Purchase',
           event_time: Math.floor(Date.now() / 1000),
+          event_source_url: 'https://book.vardoxstudio.com/',
           action_source: 'website',
           event_id: order.txnid,
           user_data,
@@ -577,6 +599,8 @@ async function sendMetaPurchase(
         },
       ],
     };
+    if (env.META_TEST_EVENT_CODE?.trim()) payload.test_event_code = env.META_TEST_EVENT_CODE.trim();
+
     const url = `https://graph.facebook.com/${META_API_VERSION}/${META_PIXEL_ID}/events?access_token=${encodeURIComponent(token)}`;
     const result = await fetch(url, {
       method: 'POST',
@@ -603,7 +627,10 @@ function cookieValue(cookieHeader: string, name: string): string {
   const needle = `${name}=`;
   for (const part of cookieHeader.split(';')) {
     const trimmed = part.trim();
-    if (trimmed.startsWith(needle)) return trimmed.slice(needle.length);
+    if (trimmed.startsWith(needle)) {
+      const value = trimmed.slice(needle.length);
+      try { return decodeURIComponent(value); } catch { return value; }
+    }
   }
   return '';
 }
