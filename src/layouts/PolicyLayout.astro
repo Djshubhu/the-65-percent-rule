@@ -37,6 +37,16 @@ const canonical = new URL(Astro.url.pathname, SITE_URL).href;
     <meta property="og:type" content="website" />
     <meta property="og:url" content={canonical} />
     <meta name="robots" content="index, follow" />
+
+    <!-- Google tag (gtag.js) — GA4 property G-8BLY3BHGM8 -->
+    <script is:inline async src="https://www.googletagmanager.com/gtag/js?id=G-8BLY3BHGM8"></script>
+    <script is:inline>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+
+      gtag('config', 'G-8BLY3BHGM8');
+    </script>
   </head>
   <body>
     <header class="nav">

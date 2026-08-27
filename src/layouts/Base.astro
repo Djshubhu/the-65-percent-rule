@@ -70,6 +70,16 @@ const description = SITE_DESCRIPTION;
     <meta name="twitter:image" content={ogImage} />
     <meta name="theme-color" content="#0f0c09" />
 
+    <!-- Google tag (gtag.js) — GA4 property G-8BLY3BHGM8 -->
+    <script is:inline async src="https://www.googletagmanager.com/gtag/js?id=G-8BLY3BHGM8"></script>
+    <script is:inline>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+
+      gtag('config', 'G-8BLY3BHGM8');
+    </script>
+
     <script type="application/ld+json" set:html={JSON.stringify(bookSchema)} />
     <script type="application/ld+json" set:html={JSON.stringify(faqSchema)} />
   </head>

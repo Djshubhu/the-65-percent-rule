@@ -20,6 +20,8 @@ export interface Env {
   PAYU_SALT?: string;
   PAYU_ENV?: 'test' | 'production';
   SITE_URL?: string;
+  MAIL_WEBHOOK_URL?: string;
+  MAIL_WEBHOOK_SECRET?: string;
 }
 
 type Values = Record<string, string>;
@@ -27,6 +29,17 @@ type Values = Record<string, string>;
 const PRICE = '199.00';
 const PRODUCT_INFO = 'The 65 Percent Rule - First Edition';
 const PRODUCT_SLUG = 'the-65-percent-rule';
+
+// Google Analytics 4 (book.vardoxstudio.com property).
+const GA4_ID = 'G-8BLY3BHGM8';
+const GA4_CURRENCY = 'INR';
+const GA4_VALUE = 199;
+const GA4_ITEM = {
+  item_id: PRODUCT_SLUG,
+  item_name: 'The 65% Rule — Digital First Edition',
+  price: 199,
+  quantity: 1,
+};
 
 export default {
   async fetch(request: Request, env: Env): Promise<Response> {
@@ -72,6 +85,7 @@ async function checkoutPage(env: Env): Promise<Response> {
     <meta name="robots" content="noindex" />
     <title>Checkout · The 65% Rule</title>
     <style>${pageStyles()}</style>
+    ${gaTag()}
   </head>
   <body>
     <main class="shell">
@@ -99,6 +113,15 @@ async function checkoutPage(env: Env): Promise<Response> {
       </section>
       <p class="back"><a href="${escapeHtml(base)}">← Back to the book</a></p>
     </main>
+    <script>
+      document.querySelector('form')?.addEventListener('submit', function () {
+        if (window.gtag) gtag('event', 'begin_checkout', {
+          currency: '${GA4_CURRENCY}',
+          value: ${GA4_VALUE},
+          items: [${JSON.stringify(GA4_ITEM)}],
+        });
+      });
+    </script>
   </body>
 </html>`);
 }
@@ -425,6 +448,14 @@ function paymentPage(options: {
   status?: number;
 }): Response {
   const icon = options.tone === 'success' ? '✓' : options.tone === 'error' ? '!' : '·';
+  const purchaseScript = options.tone === 'success' && options.reference
+    ? `gtag('event', 'purchase', {
+        currency: '${GA4_CURRENCY}',
+        value: ${GA4_VALUE},
+        transaction_id: ${JSON.stringify(options.reference)},
+        items: [${JSON.stringify(GA4_ITEM)}],
+      });`
+    : '';
   return html(`<!doctype html>
 <html lang="en">
   <head>
@@ -433,6 +464,7 @@ function paymentPage(options: {
     <meta name="robots" content="noindex" />
     <title>${escapeHtml(options.title)} · The 65% Rule</title>
     <style>${pageStyles()}</style>
+    ${gaTag(purchaseScript)}
   </head>
   <body>
     <main class="shell result ${options.tone}">
@@ -458,6 +490,19 @@ function html(content: string, status = 200): Response {
       'x-frame-options': 'DENY',
     },
   });
+}
+
+/** Google tag (gtag.js) head snippet for GA4. `extraScript` (optional) is
+ *  injected after gtag('config') — used for the `purchase` event. */
+function gaTag(extraScript = ''): string {
+  return `<script async src="https://www.googletagmanager.com/gtag/js?id=${GA4_ID}"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', '${GA4_ID}');
+      ${extraScript}
+    </script>`;
 }
 
 function methodNotAllowed(allow: string): Response {
