@@ -22,6 +22,7 @@ export interface Env {
   SITE_URL?: string;
   MAIL_WEBHOOK_URL?: string;
   MAIL_WEBHOOK_SECRET?: string;
+  META_CAPI_TOKEN?: string;
 }
 
 type Values = Record<string, string>;
@@ -40,6 +41,13 @@ const GA4_ITEM = {
   price: 199,
   quantity: 1,
 };
+
+// Meta Pixel + Conversions API — book.vardoxstudio.com dataset.
+// META_CAPI_TOKEN is a Cloudflare secret (never committed to Git). Set it with:
+//   npx wrangler secret put META_CAPI_TOKEN
+const META_PIXEL_ID = '28111829495106074';
+const META_API_VERSION = 'v21.0';
+const META_VALUE = 199;
 
 export default {
   async fetch(request: Request, env: Env): Promise<Response> {
@@ -119,6 +127,13 @@ async function checkoutPage(env: Env): Promise<Response> {
           currency: '${GA4_CURRENCY}',
           value: ${GA4_VALUE},
           items: [${JSON.stringify(GA4_ITEM)}],
+        });
+        if (window.fbq) fbq('track', 'InitiateCheckout', {
+          value: ${META_VALUE},
+          currency: 'INR',
+          content_ids: ['${PRODUCT_SLUG}'],
+          content_type: 'product',
+          num_items: 1,
         });
       });
     </script>
@@ -232,6 +247,15 @@ async function handlePayuReturn(request: Request, env: Env): Promise<Response> {
         email: response.email || '',
         firstname: response.firstname || '',
         txnid: response.txnid || '',
+      });
+      // Conversions API: send the Purchase from the server so Meta gets it even
+      // when the browser signal is lost (ad blockers, iOS, PayU redirect wall).
+      void sendMetaPurchase(env, {
+        txnid: response.txnid || '',
+        email: response.email || '',
+        phone: response.phone || '',
+        userAgent: request.headers.get('user-agent') || '',
+        cookieHeader: request.headers.get('cookie') || '',
       });
       return paymentPage({
         title: 'Payment verified.',
@@ -456,6 +480,16 @@ function paymentPage(options: {
         items: [${JSON.stringify(GA4_ITEM)}],
       });`
     : '';
+  const metaExtra = options.tone === 'success' && options.reference
+    ? `fbq('track', 'Purchase', {
+        value: ${META_VALUE},
+        currency: 'INR',
+        content_ids: ['${PRODUCT_SLUG}'],
+        content_type: 'product',
+        num_items: 1,
+        eventID: ${JSON.stringify(options.reference)},
+      });`
+    : '';
   return html(`<!doctype html>
 <html lang="en">
   <head>
@@ -465,6 +499,7 @@ function paymentPage(options: {
     <title>${escapeHtml(options.title)} · The 65% Rule</title>
     <style>${pageStyles()}</style>
     ${gaTag(purchaseScript)}
+    ${metaPixelSnippet(metaExtra)}
   </head>
   <body>
     <main class="shell result ${options.tone}">
@@ -490,6 +525,87 @@ function html(content: string, status = 200): Response {
       'x-frame-options': 'DENY',
     },
   });
+}
+
+/** Meta Pixel (fbevents.js) head snippet. `extraScript` (optional) is injected
+ *  after PageView — used for `InitiateCheckout`/`Purchase` events. */
+function metaPixelSnippet(extraScript = ''): string {
+  return `<script>
+      !function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){n.callMethod?n.callMethod.apply(n,arguments):n.queue.push(arguments)};if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';n.queue=[];t=b.createElement(e);t.async=!0;t.src=v;s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)}(window,document,'script','https://connect.facebook.net/en_US/fbevents.js');
+      fbq('init', '${META_PIXEL_ID}');
+      fbq('track', 'PageView');
+      ${extraScript}
+    </script>
+    <noscript><img height="1" width="1" style="display:none" src="https://www.facebook.com/tr?id=${META_PIXEL_ID}&ev=PageView&noscript=1"/></noscript>`;
+}
+
+/**
+ * Conversions API — server-side Purchase event. Runs after PayU verification
+ * and dedupes with the browser Pixel via the shared event_id (txnid).
+ */
+async function sendMetaPurchase(
+  env: Env,
+  order: { txnid: string; email: string; phone: string; userAgent: string; cookieHeader: string },
+): Promise<void> {
+  const token = env.META_CAPI_TOKEN;
+  if (!token || !order.txnid) return;
+  try {
+    const em = await sha256Hex(order.email.trim().toLowerCase());
+    const ph = await sha256Hex(order.phone.replace(/\D/g, ''));
+    const user_data: Record<string, string[]> = { em: [em], ph: [ph] };
+    const ua = order.userAgent.slice(0, 512);
+    if (ua) user_data.client_user_agent = [ua];
+    const fbp = cookieValue(order.cookieHeader, '_fbp');
+    const fbc = cookieValue(order.cookieHeader, '_fbc');
+    if (fbp) user_data.fbp = [fbp];
+    if (fbc) user_data.fbc = [fbc];
+    const payload = {
+      data: [
+        {
+          event_name: 'Purchase',
+          event_time: Math.floor(Date.now() / 1000),
+          action_source: 'website',
+          event_id: order.txnid,
+          user_data,
+          custom_data: {
+            value: META_VALUE,
+            currency: 'INR',
+            content_ids: [PRODUCT_SLUG],
+            content_type: 'product',
+            num_items: 1,
+          },
+        },
+      ],
+    };
+    const url = `https://graph.facebook.com/${META_API_VERSION}/${META_PIXEL_ID}/events?access_token=${encodeURIComponent(token)}`;
+    const result = await fetch(url, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify(payload),
+      signal: AbortSignal.timeout(15000),
+    });
+    if (!result.ok) {
+      console.error('Meta CAPI Purchase failed', result.status, await result.text().catch(() => ''));
+    }
+  } catch (error) {
+    // Never break the buyer's payment-result page because of a tracking call.
+    console.error('Meta CAPI Purchase error', error);
+  }
+}
+
+async function sha256Hex(input: string): Promise<string> {
+  const bytes = new TextEncoder().encode(input);
+  const hash = await crypto.subtle.digest('SHA-256', bytes);
+  return [...new Uint8Array(hash)].map((byte) => byte.toString(16).padStart(2, '0')).join('');
+}
+
+function cookieValue(cookieHeader: string, name: string): string {
+  const needle = `${name}=`;
+  for (const part of cookieHeader.split(';')) {
+    const trimmed = part.trim();
+    if (trimmed.startsWith(needle)) return trimmed.slice(needle.length);
+  }
+  return '';
 }
 
 /** Google tag (gtag.js) head snippet for GA4. `extraScript` (optional) is
